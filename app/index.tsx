@@ -12,17 +12,34 @@ import { DarkTheme } from "@react-navigation/native";
 
 export default function App() {
   const [darkmode, setDarkMode] = useState(false);
-  const [currentNumber, setCurrentNumber] = useState("");
-  const [lastNumber, setLastNumber] = useState("");
+  const [currentNumber, setCurrentNumber] = useState("0");
+  const [lastNumber, setLastNumber] = useState("0");
+
+  const styles = getDynamicStyles(darkmode);
 
   const buttons = [
-    "C", "DEL", "%", "/",
-    7, 8, 9, "*",
-    4, 5, 6, "-",
-    1, 2, 3, "+",
-    0, ".", "=",
+    "C",
+    "DEL",
+    "%",
+    "/",
+    7,
+    8,
+    9,
+    "*",
+    4,
+    5,
+    6,
+    "-",
+    1,
+    2,
+    3,
+    "+",
+    ".",
+    0,
+    ,
+    "+/-",
+    "=",
   ];
-
 
   function calculator() {
     let lastArray = currentNumber[currentNumber.length - 1];
@@ -31,7 +48,8 @@ export default function App() {
       lastArray === "*" ||
       lastArray === "/" ||
       lastArray === "+" ||
-      lastArray === "-"
+      lastArray === "-" ||
+      lastArray === "+/-"
     ) {
       setCurrentNumber(currentNumber);
       return;
@@ -46,7 +64,13 @@ export default function App() {
         let result = eval(
           `${parseFloat(numbers[0])} ${operator} ${parseFloat(numbers[1])}`
         );
-        setCurrentNumber(result.toString());
+        setCurrentNumber(
+          result
+            .toString()
+            .replace(/\./, ".")
+            .replace(/\,/, ",")
+            .replace("NaN", "0")
+        );
         return;
       }
     }
@@ -68,7 +92,7 @@ export default function App() {
       case "DEL":
         Vibration.vibrate(35);
         let string = currentNumber.toString();
-        let deletedString = string.substr(0, string.length - 1);
+        let deletedString = string.slice(0, string.length - 1);
         setCurrentNumber(deletedString);
         return;
       case "C":
@@ -80,6 +104,22 @@ export default function App() {
         Vibration.vibrate(35);
         setLastNumber(currentNumber + "=");
         calculator();
+        return;
+      case "+/-":
+        Vibration.vibrate(35);
+        let lastArray = currentNumber[currentNumber.length - 1];
+        if (
+          lastArray === "+" ||
+          lastArray === "-" ||
+          lastArray === "*" ||
+          lastArray === "/"
+        ) {
+          let string = currentNumber.toString();
+          let deletedString = string.slice(0, string.length - 1);
+          setCurrentNumber(deletedString);
+          return;
+        }
+        setCurrentNumber((parseFloat(currentNumber) * -1).toString());
         return;
     }
 
@@ -106,16 +146,18 @@ export default function App() {
           return (
             <TouchableOpacity
               key={index}
-              onPress={() => handleInput(button.toString())}
+              onPress={() =>
+                button !== undefined && handleInput(button.toString())
+              }
               style={[
                 styles.button,
                 {
                   backgroundColor:
                     typeof button === "number" || button === "."
-                      ? DarkTheme
+                      ? darkmode
                         ? "#303946"
                         : "#e0e0e0"
-                      : DarkTheme
+                      : darkmode
                       ? "#414853"
                       : "#f0f0f0",
                 },
@@ -146,53 +188,54 @@ export default function App() {
   );
 }
 
-const styles = StyleSheet.create({
-  results: {
-    backgroundColor: DarkTheme ? "#282f3b" : "#f5f5f5",
-    width: "100%",
-    minHeight: "35%",
-    alignItems: "flex-end",
-    justifyContent: "flex-end",
-  },
-  resultText: {
-    maxHeight: 45,
-    color: "#00b9d6",
-    margin: 15,
-    fontSize: 35,
-  },
-  historyText: {
-    color: DarkTheme ? "#B5B7BB" : "#7C7C7C",
-    fontSize: 20,
-    marginRight: 10,
-    alignSelf: "flex-end",
-  },
-  themeButton: {
-    alignSelf: "flex-start",
-    bottom: "5%",
-    margin: 15,
-    backgroundColor: DarkTheme ? "#7b8084" : "#e5e5e5",
-    alignItems: "center",
-    justifyContent: "center",
-    width: 50,
-    height: 50,
-    borderRadius: 25,
-  },
-  buttons: {
-    width: "100%",
-    height: "35%",
-    flexDirection: "row",
-    flexWrap: "wrap",
-  },
-  button: {
-    borderColor: DarkTheme ? "#3f4d5b" : "#e5e5e5",
-    alignItems: "center",
-    justifyContent: "center",
-    minWidth: "24%",
-    minHeight: "54%",
-    flex: 2,
-  },
-  textButton: {
-    color: DarkTheme ? "#b5b7bb" : "#7c7c7c",
-    fontSize: 28,
-  },
-});
+const getDynamicStyles = (darkmode: boolean) =>
+  StyleSheet.create({
+    results: {
+      backgroundColor: darkmode ? "#282f3b" : "#f5f5f5",
+      width: "100%",
+      minHeight: "35%",
+      alignItems: "flex-end",
+      justifyContent: "flex-end",
+    },
+    resultText: {
+      maxHeight: 45,
+      color: "#00b9d6",
+      margin: 15,
+      fontSize: 35,
+    },
+    historyText: {
+      color: darkmode ? "#B5B7BB" : "#7C7C7C",
+      fontSize: 20,
+      marginRight: 10,
+      alignSelf: "flex-end",
+    },
+    themeButton: {
+      alignSelf: "flex-start",
+      bottom: "5%",
+      margin: 15,
+      backgroundColor: darkmode ? "#7b8084" : "#e5e5e5",
+      alignItems: "center",
+      justifyContent: "center",
+      width: 50,
+      height: 50,
+      borderRadius: 25,
+    },
+    buttons: {
+      width: "100%",
+      height: "35%",
+      flexDirection: "row",
+      flexWrap: "wrap",
+    },
+    button: {
+      borderColor: darkmode ? "#3f4d5b" : "#e5e5e5",
+      alignItems: "center",
+      justifyContent: "center",
+      minWidth: "24%",
+      minHeight: "54%",
+      flex: 2,
+    },
+    textButton: {
+      color: darkmode ? "#b5b7bb" : "#7c7c7c",
+      fontSize: 28,
+    },
+  });
